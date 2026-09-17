@@ -182,6 +182,73 @@ See [gh_issue_reference.md](.agents/skills/issue/references/gh_issue_reference.m
 
 ---
 
+## Using the `/issue` Command in Antigravity
+
+Antigravity seamlessly integrates skills into chat via **slash commands** and natural language comprehension. When you type `/issue` or discuss GitHub issues in the chat, Antigravity dynamically loads the `issue` skill and executes actions using the `issue_helper.py` CLI and GitHub CLI (`gh`).
+
+### How It Works
+
+1. **Discovery & Progressive Disclosure**:
+   - Antigravity detects the skill located in `.agents/skills/issue/SKILL.md` (project-level) or `~/.gemini/antigravity/skills/issue/SKILL.md` (global).
+   - Only lightweight metadata (name and description) is kept in prompt memory until activated, preserving context window capacity.
+2. **Slash Command Invocation**:
+   - Typing `/issue <request>` in chat signals Antigravity to load the complete runbook, inspect the repository remotes, and execute commands autonomously.
+3. **Repository Context**:
+   - The agent automatically targets the current repository based on git remotes (`origin`). You can instruct it to work with any repository by providing the repository name (e.g. `/issue list open issues in facebook/react`).
+
+---
+
+### Common Chat Interactions
+
+| User Chat Prompt | What Antigravity Does |
+| :--- | :--- |
+| `/issue list of issues` | Runs `issue_helper.py list` and summarizes open issues with task completion counters (`[x/y tasks completed]`). |
+| `/issue view 1` | Runs `issue_helper.py view 1`, displaying description, acceptance criteria, and numbered tasks. |
+| `/issue create issue for user authentication` | Generates a title (`feat: implement user authentication`), creates structured tasks, and runs `issue_helper.py create`. |
+| `/issue check-task 1 1` | Automatically edits issue #1 on GitHub, toggling task #1 from `- [ ]` to `- [x]`. |
+| `/issue attach ./demo.mp4 to issue #1` | Uploads media to GitHub CDN and attaches it to the issue or milestone comment. |
+| `implement /issue #1 and close it when done` | Implements the required code, checks off tasks sequentially, pushes a commit referencing `Closes #1`, and closes the issue. |
+
+---
+
+### End-to-End Agentic Workflow Example
+
+Here is how pair programming with Antigravity and `/issue` flows during development:
+
+```text
+User:
+> /issue create issue for dark mode theme toggle
+
+Antigravity:
+✓ Created Issue #42: "feat: add dark mode theme toggle"
+  - Tasks:
+    - [ ] Create ThemeContext and provider
+    - [ ] Add dark theme CSS variables
+    - [ ] Add theme switcher toggle button
+    - [ ] Write unit tests for theme persistence
+
+User:
+> Implement task 1 and 2
+
+Antigravity:
+✓ Implemented ThemeContext.tsx and updated styles.css
+✓ Toggled task 1: "Create ThemeContext and provider" -> [DONE]
+✓ Toggled task 2: "Add dark theme CSS variables" -> [DONE]
+✓ Posted progress comment with test results
+
+User:
+> Finish all remaining tasks and close the issue
+
+Antigravity:
+✓ Added theme switcher component and verified unit tests
+✓ Toggled task 3 and 4 -> [DONE]
+✓ Committed: "feat: add dark mode theme toggle (Closes #42)"
+✓ Pushed to origin/main
+✓ Closed Issue #42 as COMPLETED with commit reference
+```
+
+---
+
 ## License & Credits
 
 - Upstream original concept and implementation by [@rodydavis](https://github.com/rodydavis) in [rodydavis/agy-test](https://github.com/rodydavis/agy-test).
